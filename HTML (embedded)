@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Money Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            max-width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .category-tag {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .delete-btn:hover {
+            background-color: #e53935;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Daily Money Tracker</h1>
+        <form id="tracker-form">
+            <input type="date" id="date" required>
+            <input type="number" id="amount" placeholder="Amount" required step="0.01">
+            <input type="text" id="description" placeholder="Description" required>
+            
+            <select id="category" required>
+                <option value="">Select Category</option>
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Bills">Bills</option>
+                <option value="Other">Other</option>
+            </select>
+            
+            <input type="text" id="new-category" placeholder="Add new category (optional)">
+            
+            <select id="currency" required>
+                <option value="THB">Baht (THB)</option>
+                <option value="USD">US Dollar (USD)</option>
+                <option value="MMK">Myanmar Kyat (MMK)</option>
+            </select>
+            
+            <button type="submit">Add Entry</button>
+        </form>
+
+        <table id="entries-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Currency</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="entries"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to load entries from localStorage
+        function loadEntries() {
+            const entries = JSON.parse(localStorage.getItem('moneyTrackerEntries')) || [];
+            const entriesList = document.getElementById('entries');
+            entriesList.innerHTML = '';
+
+            entries.forEach((entry, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${entry.currency} ${entry.amount}</td>
+                    <td>${entry.description}</td>
+                    <td><span class="category-tag">${entry.category}</span></td>
+                    <td>${entry.currency}</td>
+                    <td><button class="delete-btn" onclick="deleteEntry(${index})">Delete</button></td>
+                `;
+                entriesList.appendChild(tr);
+            });
+        }
+
+        // Function to handle form submission
+        document.getElementById('tracker-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const date = document.getElementById('date').value;
+            const amount = document.getElementById('amount').value;
+            const description = document.getElementById('description').value;
+            const category = document.getElementById('category').value || document.getElementById('new-category').value;
+            const currency = document.getElementById('currency').value;
+
+            if (!date || !amount || !description || !category || !currency) return;
+
+            const entry = { date, amount, description, category, currency };
+            const entries = JSON.parse(localStorage.getItem('moneyTrackerEntries')) || [];
+            entries.push(entry);
+
+            localStorage.setItem('moneyTrackerEntries', JSON.stringify(entries));
+
+            // Clear form after submission
+            document.getElementById('date').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('new-category').value = '';
+            document.getElementById('currency').value = 'THB';
+
+            loadEntries();
+        });
+
+        // Function to delete an entry
+        function deleteEntry(index) {
+            if (confirm("Are you sure you want to delete this entry?")) {
+                const entries = JSON.parse(localStorage.getItem('moneyTrackerEntries')) || [];
+                entries.splice(index, 1); // Remove the entry at the specified index
+                localStorage.setItem('moneyTrackerEntries', JSON.stringify(entries));
+                loadEntries(); // Reload the entries
+            }
+        }
+
+        // Initial load of entries
+        loadEntries();
+    </script>
+</body>
+</html>
